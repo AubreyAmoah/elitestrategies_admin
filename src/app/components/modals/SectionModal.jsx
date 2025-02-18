@@ -75,7 +75,7 @@ export default function SectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? "Create New Section" : "Edit Section"}
@@ -120,12 +120,15 @@ export default function SectionModal({
           </div>
           <div>
             <Label htmlFor="additionalInfo">Additional Information</Label>
-            <RichTextEditor
-              content={formData.additionalInfo}
-              onChange={(content) =>
-                setFormData({ ...formData, additionalInfo: content })
+            <Textarea
+              id="additionalInfo"
+              value={formData.additionalInfo}
+              onChange={(e) =>
+                setFormData({ ...formData, additionalInfo: e.target.value })
               }
-              
+              placeholder="Enter additional information"
+              rows={5}
+              className="resize-vertical"
             />
           </div>
           <div className="flex justify-end space-x-2">

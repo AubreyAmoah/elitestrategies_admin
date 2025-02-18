@@ -17,7 +17,7 @@ export default function CollapsibleText({ content, maxLength = 150 }) {
   return (
     <div>
       <div
-        className="prose max-w-none"
+        className="prose max-w-none text-inherit"
         dangerouslySetInnerHTML={{ __html: displayContent }}
       />
       {shouldCollapse && (

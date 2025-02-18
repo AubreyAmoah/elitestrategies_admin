@@ -33,6 +33,7 @@ export default function CategoryDetailsModal({
   const [isAddSampleModalOpen, setIsAddSampleModalOpen] = useState(false);
   const [isEditSampleModalOpen, setIsEditSampleModalOpen] = useState(false);
   const [selectedSample, setSelectedSample] = useState(null);
+  const [sectionToDelete, setSectionToDelete] = useState(null);
 
   const { toast } = useToast();
   const [itemFilters, setItemFilters] = useState({
@@ -46,6 +47,25 @@ export default function CategoryDetailsModal({
     direction: "asc",
   });
   const [filteredItems, setFilteredItems] = useState({});
+
+  const fetchCategoryData = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_URL}/api/users/categories/${category._id}`,
+        { withCredentials: true }
+      );
+      // Update the local category data
+      if (onSuccess) {
+        onSuccess(response.data.data);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh category data",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Add this useEffect to initialize filtered items when sections change
   useEffect(() => {
@@ -84,6 +104,33 @@ export default function CategoryDetailsModal({
     }));
   };
 
+  const handleDeleteSection = async (sectionId) => {
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_URL}/api/users/delete-section/${category._id}/sections/${sectionId}`,
+        { withCredentials: true }
+      );
+      toast({
+        title: "Success",
+        description: "Section deleted successfully",
+      });
+
+      // Fetch updated data
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      await fetchCategoryData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message || "Failed to delete section",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteItem = async (sectionId, itemId) => {
     try {
       await axios.delete(
@@ -95,6 +142,8 @@ export default function CategoryDetailsModal({
         description: "Item deleted successfully",
       });
       onSuccess();
+
+      await fetchCategoryData();
     } catch (error) {
       toast({
         title: "Error",
@@ -116,6 +165,8 @@ export default function CategoryDetailsModal({
         description: "Sample deleted successfully",
       });
       onSuccess();
+
+      await fetchCategoryData();
     } catch (error) {
       toast({
         title: "Error",
@@ -261,9 +312,7 @@ export default function CategoryDetailsModal({
                           {section.additionalInfo && (
                             <div
                               className={`mt-4 ${
-                                section.image
-                                  ? "text-gray-200"
-                                  : "text-gray-700"
+                                section.image ? "text-white" : "text-gray-700"
                               }`}
                             >
                               <h4
@@ -295,7 +344,15 @@ export default function CategoryDetailsModal({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteSection(section?._id)}
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this section?"
+                              )
+                            ) {
+                              handleDeleteSection(section._id);
+                            }
+                          }}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
@@ -314,7 +371,7 @@ export default function CategoryDetailsModal({
               {category?.sections?.map((section) => (
                 <div key={section._id}>
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">{section.name}</h3>
+                    <h3 className="text-lg font-semibold">{section.title}</h3>
                     <Button
                       onClick={() => {
                         setSelectedSectionId(section._id);
@@ -426,13 +483,12 @@ export default function CategoryDetailsModal({
           </TabsContent>
 
           {/* Samples Tab */}
-          {/* Samples Tab */}
           <TabsContent value="samples">
             <div className="space-y-6">
               {category?.sections?.map((section) => (
                 <div key={section._id}>
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">{section.name}</h3>
+                    <h3 className="text-lg font-semibold">{section.title}</h3>
                     <Button
                       onClick={() => {
                         setSelectedSectionId(section._id);

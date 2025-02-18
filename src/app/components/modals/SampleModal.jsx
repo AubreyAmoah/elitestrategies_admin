@@ -61,8 +61,9 @@ export default function SampleModal({
     try {
       if (mode === "create") {
         await axios.post(
-          `/api/users/add-sample/${categoryId}/sections/${sectionId}/samples`,
-          formData
+          `${process.env.NEXT_PUBLIC_URL}/api/users/add-sample/${categoryId}/sections/${sectionId}/samples`,
+          formData,
+          { withCredentials: true }
         );
         toast({
           title: "Success",
@@ -70,8 +71,9 @@ export default function SampleModal({
         });
       } else {
         await axios.patch(
-          `/api/users/update-sample/${categoryId}/sections/${sectionId}/samples/${sample._id}`,
-          formData
+          `${process.env.NEXT_PUBLIC_URL}/api/users/update-sample/${categoryId}/sections/${sectionId}/samples/${sample._id}`,
+          formData,
+          { withCredentials: true }
         );
         toast({
           title: "Success",
@@ -128,7 +130,7 @@ export default function SampleModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl h-[100vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? "Create New Sample" : "Edit Sample"}

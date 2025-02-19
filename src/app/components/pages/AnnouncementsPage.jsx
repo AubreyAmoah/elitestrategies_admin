@@ -1,25 +1,11 @@
-// components/pages/AnnouncementsPage.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  AlertCircle,
-  Megaphone,
-  Calendar,
-} from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Plus, Trash2, Pencil, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,173 +16,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import Loading from "../Loading";
+import CreateAnnouncementModal from "../modals/CreateAnnouncementModal";
+import EditAnnouncementModal from "../modals/EditAnnouncementModal";
 
-// Create a new Announcement Modal
-function AnnouncementModal({
-  isOpen,
-  onClose,
-  announcement = null,
-  onSuccess,
-}) {
-  const [formData, setFormData] = useState({
-    type: announcement?.type || "announcement",
-    title: announcement?.title || "",
-    content: announcement?.content || "",
-    imageUrl: announcement?.imageUrl || "",
-    expiryDate: announcement?.expiryDate || "",
-  });
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+const API_URL = process.env.NEXT_PUBLIC_URL;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (announcement) {
-        await axios.patch(
-          `${process.env.NEXT_PUBLIC_URL}/api/announcements/${announcement._id}`,
-          formData,
-          { withCredentials: true }
-        );
-      } else {
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_URL}/api/announcements`,
-          formData,
-          { withCredentials: true }
-        );
-      }
-      toast({
-        title: "Success",
-        description: `Announcement ${
-          announcement ? "updated" : "created"
-        } successfully`,
-      });
-      onSuccess();
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message ||
-          `Failed to ${announcement ? "update" : "create"} announcement`,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {announcement ? "Edit Announcement" : "Create Announcement"}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Type</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="announcement">Announcement</SelectItem>
-                <SelectItem value="promo">Promo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              placeholder="Enter announcement title"
-              required
-            />
-          </div>
-
-          <div>
-            <Label>Content</Label>
-            <Textarea
-              value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
-              placeholder="Enter announcement content"
-              rows={4}
-              required
-            />
-          </div>
-
-          <div>
-            <Label>Image URL</Label>
-            <Input
-              value={formData.imageUrl}
-              onChange={(e) =>
-                setFormData({ ...formData, imageUrl: e.target.value })
-              }
-              placeholder="Enter image URL"
-            />
-            {formData.imageUrl && (
-              <div className="mt-2 relative w-full h-32">
-                <img
-                  src={formData.imageUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover rounded-md"
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <Label>Expiry Date</Label>
-            <Input
-              type="datetime-local"
-              value={formData.expiryDate}
-              onChange={(e) =>
-                setFormData({ ...formData, expiryDate: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose} type="button">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : announcement ? "Update" : "Create"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Main Announcements Page
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -205,7 +34,9 @@ export default function AnnouncementsPage() {
   const fetchAnnouncements = async () => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_URL}/api/announcements`,
+        filter === "active"
+          ? `${API_URL}/api/announcements/active`
+          : `${API_URL}/api/announcements`,
         { withCredentials: true }
       );
       setAnnouncements(response.data.data);
@@ -222,15 +53,14 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     fetchAnnouncements();
-  }, []);
+  }, [filter]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this announcement?")) {
       try {
-        await axios.delete(
-          `${process.env.NEXT_PUBLIC_URL}/api/announcements/${id}`,
-          { withCredentials: true }
-        );
+        await axios.delete(`${API_URL}/api/announcements/${id}`, {
+          withCredentials: true,
+        });
         toast({
           title: "Success",
           description: "Announcement deleted successfully",
@@ -254,10 +84,9 @@ export default function AnnouncementsPage() {
       )
     ) {
       try {
-        await axios.delete(
-          `${process.env.NEXT_PUBLIC_URL}/api/announcements/expired`,
-          { withCredentials: true }
-        );
+        await axios.delete(`${API_URL}/api/announcements/expired`, {
+          withCredentials: true,
+        });
         toast({
           title: "Success",
           description: "Expired announcements deleted successfully",
@@ -275,12 +104,27 @@ export default function AnnouncementsPage() {
 
   const filteredAnnouncements = announcements.filter((announcement) => {
     if (filter === "all") return true;
-    if (filter === "active")
-      return new Date(announcement.expiryDate) > new Date();
-    if (filter === "expired")
-      return new Date(announcement.expiryDate) <= new Date();
+    if (filter === "active") return true; // Handled by API
     return announcement.type === filter;
   });
+
+  const getTypeColor = (type) => {
+    const colors = {
+      info: "bg-blue-100 text-blue-800",
+      warning: "bg-yellow-100 text-yellow-800",
+      alert: "bg-red-100 text-red-800",
+      success: "bg-green-100 text-green-800",
+    };
+    return colors[type] || colors.info;
+  };
+
+  if (loading) {
+    return (
+      <div className="lg:ml-64 p-6">
+        <Loading />
+      </div>
+    );
+  }
 
   return (
     <div className="lg:ml-64 p-6">
@@ -294,20 +138,17 @@ export default function AnnouncementsPage() {
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="expired">Expired</SelectItem>
-              <SelectItem value="announcement">Announcements</SelectItem>
-              <SelectItem value="promo">Promos</SelectItem>
+              <SelectItem value="info">Info</SelectItem>
+              <SelectItem value="warning">Warning</SelectItem>
+              <SelectItem value="alert">Alert</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteExpired}
-            className="ml-2"
-          >
+          <Button variant="destructive" onClick={handleDeleteExpired}>
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Expired
           </Button>
-          <Button onClick={() => setIsModalOpen(true)}>
+          <Button onClick={() => setIsNewModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             New Announcement
           </Button>
@@ -324,7 +165,7 @@ export default function AnnouncementsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card className={`${isExpired ? "opacity-60" : ""}`}>
+              <Card className={isExpired ? "opacity-60" : ""}>
                 {announcement.imageUrl && (
                   <div className="relative w-full h-48">
                     <img
@@ -337,13 +178,7 @@ export default function AnnouncementsPage() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <Badge
-                        variant={
-                          announcement.type === "promo"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
+                      <Badge className={getTypeColor(announcement.type)}>
                         {announcement.type}
                       </Badge>
                       <CardTitle className="mt-2">
@@ -355,7 +190,7 @@ export default function AnnouncementsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setSelectedAnnouncement(announcement);
+                          setSelectedAnnouncement(announcement._id);
                           setIsModalOpen(true);
                         }}
                       >
@@ -392,13 +227,20 @@ export default function AnnouncementsPage() {
         })}
       </div>
 
-      <AnnouncementModal
+      <CreateAnnouncementModal
+        isOpen={isNewModalOpen}
+        onClose={() => {
+          setIsNewModalOpen(false);
+        }}
+        onSuccess={fetchAnnouncements}
+      />
+
+      <EditAnnouncementModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setSelectedAnnouncement(null);
         }}
-        announcement={selectedAnnouncement}
+        announcementId={selectedAnnouncement}
         onSuccess={fetchAnnouncements}
       />
     </div>

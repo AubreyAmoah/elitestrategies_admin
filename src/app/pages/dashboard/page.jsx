@@ -11,6 +11,8 @@ import {
   LogOut,
   Box,
   Megaphone,
+  FileQuestion,
+  PenToolIcon,
 } from "lucide-react";
 import CategoryPage from "@/app/components/pages/CategoryPage";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,6 +23,8 @@ import AnnouncementsPage from "@/app/components/pages/AnnouncementsPage";
 import HomePage from "@/app/components/pages/HomePage";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
+import QAPairsManager from "@/app/components/pages/QAImportPage";
+import QATestingInterface from "@/app/components/pages/ChatbotTest";
 
 export default function Dashboard() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,6 +52,10 @@ export default function Dashboard() {
         return <SuggestionsPage />;
       case "announcements":
         return <AnnouncementsPage />;
+      case "chatbot":
+        return <QAPairsManager />;
+      case "test":
+        return <QATestingInterface />;
       default:
         return <HomePage />;
     }
@@ -119,6 +127,24 @@ export default function Dashboard() {
           >
             <Megaphone className="w-5 h-5" />
             <span>Announcements</span>
+          </button>
+          <button
+            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
+              currentPage === "announcements" ? "bg-gray-100" : ""
+            }`}
+            onClick={() => handleNavigation("chatbot")}
+          >
+            <FileQuestion className="w-5 h-5" />
+            <span>Chatbox Config</span>
+          </button>
+          <button
+            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
+              currentPage === "announcements" ? "bg-gray-100" : ""
+            }`}
+            onClick={() => handleNavigation("test")}
+          >
+            <PenToolIcon className="w-5 h-5" />
+            <span>Chatbox Test</span>
           </button>
           <button
             className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"

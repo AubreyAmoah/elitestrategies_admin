@@ -1,6 +1,5 @@
-// pages/dashboard/page.jsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,8 +15,6 @@ import {
 } from "lucide-react";
 import CategoryPage from "@/app/components/pages/CategoryPage";
 import { useRouter, useSearchParams } from "next/navigation";
-
-// Add components for other pages (create these components)
 import SuggestionsPage from "@/app/components/pages/SuggestionsPage";
 import AnnouncementsPage from "@/app/components/pages/AnnouncementsPage";
 import HomePage from "@/app/components/pages/HomePage";
@@ -26,22 +23,10 @@ import { useToast } from "@/hooks/use-toast";
 import QAPairsManager from "@/app/components/pages/QAImportPage";
 import QATestingInterface from "@/app/components/pages/ChatbotTest";
 
-export default function Dashboard() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const router = useRouter();
+// Separate the content that uses useSearchParams
+function DashboardContent() {
   const searchParams = useSearchParams();
   const currentPage = searchParams.get("p") || "";
-  const { toast } = useToast();
-
-  const sidebarVariants = {
-    open: { x: 0 },
-    closed: { x: "-100%" },
-  };
-
-  const handleNavigation = (page) => {
-    router.push(`/pages/dashboard?p=${page}`);
-    setIsMenuOpen(false); // Close mobile menu after navigation
-  };
 
   // Function to render the correct component based on URL
   const renderComponent = () => {
@@ -61,6 +46,24 @@ export default function Dashboard() {
     }
   };
 
+  return <>{renderComponent()}</>;
+}
+
+export default function Dashboard() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const sidebarVariants = {
+    open: { x: 0 },
+    closed: { x: "-100%" },
+  };
+
+  const handleNavigation = (page) => {
+    router.push(`/pages/dashboard?p=${page}`);
+    setIsMenuOpen(false);
+  };
+
   const handleLogout = async () => {
     try {
       await axios.get(`${process.env.NEXT_PUBLIC_URL}/api/auth/logout`, {
@@ -68,7 +71,7 @@ export default function Dashboard() {
       });
       toast({
         title: "Success",
-        description: "Logout  successfully",
+        description: "Logout successfully",
       });
       router.push("/");
     } catch (error) {
@@ -102,45 +105,35 @@ export default function Dashboard() {
         <nav className="mt-6">
           <div className="px-4 py-2 text-gray-500">Menu</div>
           <button
-            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
-              currentPage === "categories" ? "bg-gray-100" : ""
-            }`}
+            className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"
             onClick={() => handleNavigation("categories")}
           >
             <FolderTree className="w-5 h-5" />
             <span>Categories</span>
           </button>
           <button
-            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
-              currentPage === "suggestions" ? "bg-gray-100" : ""
-            }`}
+            className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"
             onClick={() => handleNavigation("suggestions")}
           >
             <Box className="w-5 h-5" />
             <span>Suggestions</span>
           </button>
           <button
-            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
-              currentPage === "announcements" ? "bg-gray-100" : ""
-            }`}
+            className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"
             onClick={() => handleNavigation("announcements")}
           >
             <Megaphone className="w-5 h-5" />
             <span>Announcements</span>
           </button>
           <button
-            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
-              currentPage === "announcements" ? "bg-gray-100" : ""
-            }`}
+            className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"
             onClick={() => handleNavigation("chatbot")}
           >
             <FileQuestion className="w-5 h-5" />
             <span>Chatbox Config</span>
           </button>
           <button
-            className={`w-full p-4 flex items-center space-x-4 hover:bg-gray-100 ${
-              currentPage === "announcements" ? "bg-gray-100" : ""
-            }`}
+            className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"
             onClick={() => handleNavigation("test")}
           >
             <PenToolIcon className="w-5 h-5" />
@@ -156,8 +149,10 @@ export default function Dashboard() {
         </nav>
       </motion.div>
 
-      {/* Main Content */}
-      {renderComponent()}
+      {/* Main Content with Suspense */}
+      <Suspense fallback={<div>Loading...</div>}>
+        <DashboardContent />
+      </Suspense>
     </div>
   );
 }

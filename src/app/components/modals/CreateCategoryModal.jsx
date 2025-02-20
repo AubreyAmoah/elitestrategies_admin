@@ -12,13 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-
+import { Textarea } from "@/components/ui/textarea";
+import toast from "react-hot-toast";
 
 export default function CreateCategoryModal({ isOpen, onClose, onSuccess }) {
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,23 +26,15 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess }) {
     try {
       await axios.post(
         `${process.env.NEXT_PUBLIC_URL}/api/users/create-category`,
-        { name },
+        { name, description },
         { withCredentials: true }
       );
-      toast({
-        title: "Success",
-        description: "Category created successfully",
-      });
+      toast.success("Category created successfully");
       setName(""); // Reset form
       onSuccess();
       onClose();
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to create category",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to create category");
     } finally {
       setLoading(false);
     }
@@ -63,6 +55,15 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter category name"
               required
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description (optional)"
+              rows={4}
             />
           </div>
           <div className="flex justify-end space-x-2">

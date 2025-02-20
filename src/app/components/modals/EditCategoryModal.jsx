@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
-toast;
+import toast from "react-hot-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function EditCategoryModal({
   category,
@@ -21,6 +21,7 @@ export default function EditCategoryModal({
   onSuccess,
 }) {
   const [name, setName] = useState(category?.name || "");
+  const [description, setDescription] = useState(category?.description || "");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -29,22 +30,14 @@ export default function EditCategoryModal({
     try {
       await axios.patch(
         `${process.env.NEXT_PUBLIC_URL}/api/users/categories/${category._id}`,
-        { name },
+        { name, description },
         { withCredentials: true }
       );
-      toast({
-        title: "Success",
-        description: "Category updated successfully",
-      });
+      toast.success("Category updated successfully");
       onSuccess();
       onClose();
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to update category",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to update category");
     } finally {
       setLoading(false);
     }
@@ -65,6 +58,15 @@ export default function EditCategoryModal({
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter category name"
               required
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description (optional)"
+              rows={4}
             />
           </div>
           <div className="flex justify-end space-x-2">

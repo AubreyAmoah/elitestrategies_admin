@@ -30,7 +30,6 @@ const CategoryPage = () => {
         `${process.env.NEXT_PUBLIC_URL}/api/users/categories`,
         { withCredentials: true }
       );
-      console.log(response);
       setCategories(response.data.data);
     } catch (error) {
       console.error("Error fetching categories:", error);

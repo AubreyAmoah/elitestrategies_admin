@@ -12,6 +12,7 @@ import {
   Megaphone,
   FileQuestion,
   PenToolIcon,
+  BriefcaseBusiness,
 } from "lucide-react";
 import CategoryPage from "@/app/components/pages/CategoryPage";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,6 +23,7 @@ import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import QAPairsManager from "@/app/components/pages/QAImportPage";
 import QATestingInterface from "@/app/components/pages/ChatbotTest";
+import BusinessPage from "@/app/components/pages/BusinessesPage";
 
 // Separate the content that uses useSearchParams
 function DashboardContent() {
@@ -41,6 +43,8 @@ function DashboardContent() {
         return <QAPairsManager />;
       case "test":
         return <QATestingInterface />;
+      case "business":
+        return <BusinessPage />;
       default:
         return <HomePage />;
     }
@@ -110,6 +114,13 @@ export default function Dashboard() {
           >
             <FolderTree className="w-5 h-5" />
             <span>Categories</span>
+          </button>
+          <button
+            className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"
+            onClick={() => handleNavigation("business")}
+          >
+            <BriefcaseBusiness className="w-5 h-5" />
+            <span>Businesses</span>
           </button>
           <button
             className="w-full p-4 flex items-center space-x-4 hover:bg-gray-100"

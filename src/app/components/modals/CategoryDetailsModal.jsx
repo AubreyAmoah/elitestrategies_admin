@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogTitle } from "@radix-ui/react-dialog";
 import axios from "axios";
 import { Pencil, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
@@ -15,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link as LinkIcon } from "lucide-react";
 import SampleModal from "./SampleModal";
 import CollapsibleText from "../CollapsibleText";
+import toast from "react-hot-toast";
 
 export default function CategoryDetailsModal({
   category,
@@ -35,7 +35,6 @@ export default function CategoryDetailsModal({
   const [selectedSample, setSelectedSample] = useState(null);
   const [sectionToDelete, setSectionToDelete] = useState(null);
 
-  const { toast } = useToast();
   const [itemFilters, setItemFilters] = useState({
     search: "",
     minPrice: 0,
@@ -59,11 +58,7 @@ export default function CategoryDetailsModal({
         onSuccess(response.data.data);
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to refresh category data",
-        variant: "destructive",
-      });
+      toast.error("Failed to refresh category data");
     }
   };
 
@@ -110,10 +105,7 @@ export default function CategoryDetailsModal({
         `${process.env.NEXT_PUBLIC_URL}/api/users/delete-section/${category._id}/sections/${sectionId}`,
         { withCredentials: true }
       );
-      toast({
-        title: "Success",
-        description: "Section deleted successfully",
-      });
+      toast.success("Section deleted successfully");
 
       // Fetch updated data
       if (onSuccess) {
@@ -122,12 +114,7 @@ export default function CategoryDetailsModal({
 
       await fetchCategoryData();
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error.response?.data?.message || "Failed to delete section",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to delete section");
     }
   };
 
@@ -137,19 +124,12 @@ export default function CategoryDetailsModal({
         `${process.env.NEXT_PUBLIC_URL}/api/users/delete-item/${category._id}/sections/${sectionId}/items/${itemId}`,
         { withCredentials: true }
       );
-      toast({
-        title: "Success",
-        description: "Item deleted successfully",
-      });
+      toast.success("Item deleted successfully");
       onSuccess();
 
       await fetchCategoryData();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete item",
-        variant: "destructive",
-      });
+      toast.error(error.response?.data?.message || "Failed to delete item");
     }
   };
 
@@ -160,19 +140,13 @@ export default function CategoryDetailsModal({
         `${process.env.NEXT_PUBLIC_URL}/api/users/delete-sample/${categoryId}/sections/${sectionId}/samples/${sampleId}`,
         { withCredentials: true }
       );
-      toast({
-        title: "Success",
-        description: "Sample deleted successfully",
-      });
+      toast.success("Sample deleted successfully");
       onSuccess();
 
       await fetchCategoryData();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete sample",
-        variant: "destructive",
-      });
+      console.log(error);
+      toast.error(error.response?.data?.message || "Failed to delete sample");
     }
   };
 
